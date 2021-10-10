@@ -34,20 +34,18 @@
       extra cost of synchronization). <br />
 
 2. Make use of Kubernetes services <br />
-   - Our program is stateless, very easy to deploy to Kubernetes to utilize load balancer and many other services (
-  quick deployment, health check, auto-scaling, auto start-over ...) => Resiliency improved !
+    - Our program is stateless, very easy to deploy to Kubernetes to utilize load balancer and many other services (
+      quick deployment, health check, auto-scaling, auto start-over ...) => Resiliency improved !
 
 #### This architecture can turn the application into a cloud service without much effort.
 
 ### Consideration.
 
-    Can redis single threaded become a bottleneck issue?
-    https://stackoverflow.com/questions/49304856/how-redis-deal-with-1000-requests-in-concurrency/49346017
-    https://stackoverflow.com/questions/10489298/redis-is-single-threaded-then-how-does-it-do-concurrent-i-o
-    "It's not very frequent that CPU becomes your bottleneck with Redis, as usually Redis is either memory or
-    network bound. For instance, using pipelining Redis running on an average Linux system can deliver even 1 million
-    requests per second, so if your application mainly uses O(N) or O(log(N)) commands, it is hardly going to use too
-    much CPU"
+* [Can redis single threaded become a bottleneck issue?](https://stackoverflow.com/questions/49304856/how-redis-deal-with-1000-requests-in-concurrency/49346017)
+
+> "It's not very frequent that CPU becomes your bottleneck with Redis, as usually Redis is either memory or network bound. For instance, using pipelining Redis running on an average Linux system can deliver even 1 million requests per second, so if your application mainly uses O(N) or O(log(N)) commands, it is hardly going to use too much CPU"
+
+* [Redis is single threaded, but how does it do concurrent?](https://stackoverflow.com/questions/10489298/redis-is-single-threaded-then-how-does-it-do-concurrent-i-o)
 
 ### Future researches.
 
