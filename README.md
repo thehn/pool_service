@@ -17,13 +17,13 @@ java -jar target/*.jar
 ### Build & deploy docker image
 
 <code>
-./mvnw install spring-boot:build-image <br>
+./mvnw install spring-boot:build-image <br/>
 docker run -d -p 8080:8080 poolservice:0.0.1-SNAPSHOT
 </code>
 
 ### Test 
 
-1. insert / append data to a pool <br>
+1. insert / append data to a pool <br/>
    <code>
    curl --request POST 'localhost:8080/v1/pool' \
    --header 'Content-Type: application/json' \
