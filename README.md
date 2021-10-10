@@ -10,14 +10,14 @@
 ### Build & run executable jar file
 
 <code>
-./mvnw install -U </br>
+./mvnw install -U <br>
 java -jar target/*.jar
 </code>
 
 ### Build & deploy docker image
 
 <code>
-./mvnw install spring-boot:build-image </br>
+./mvnw install spring-boot:build-image <br>
 docker run -d -p 8080:8080 poolservice:0.0.1-SNAPSHOT
 </code>
 
