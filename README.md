@@ -10,18 +10,18 @@
 ### Build & run executable jar file
 
 <code>
-./mvnw install -U <br>
+./mvnw install -U <br />
 java -jar target/*.jar
 </code>
 
 ### Build & deploy docker image
 
 <code>
-./mvnw install spring-boot:build-image <br/>
+./mvnw install spring-boot:build-image <br />
 docker run -d -p 8080:8080 poolservice:0.0.1-SNAPSHOT
 </code>
 
-### Test 
+### Test
 
 1. insert / append data to a pool <br/>
    <code>
@@ -31,11 +31,10 @@ docker run -d -p 8080:8080 poolservice:0.0.1-SNAPSHOT
    "poolId":2,
    "poolValues":[5,1,3,2,4]
    }'
-    </code>
+   </code>
 2. query quantile value of a pool <br>
    <code>curl --request POST 'localhost:8080/v1/pool/quantile' \
    --header 'Content-Type: application/json' \
    --data-raw '{
    "poolId":2,
-   "percentile":12.3
-   }'</code>
+   "percentile":12.3 }'</code>
