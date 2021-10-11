@@ -16,6 +16,11 @@
        at each node. This takes O(N) extra space. For an insert intensive tasks, Red-Black tree is winner. <br />
        When a value is appended to a pool, it will be inserted to one bucket by its value. The insertion time complexity
        is O(logN), but we have all buckets sorted. <br />
+       In most case, quantile calculation needs to access 2 consecutive elements of a pool values. With current
+       implementation, accessing to an element at index `i-th` takes `O(k + B)` where `k` = id of bucket
+       containing `i-th` element and `B` is that bucket size. <br />
+       To reduce the accessing time, I implemented an extension of `get(int index)`, it
+       is `get2ConsecutiveElements(int index)` where it can return `i-th` and `i-th + 1` in one single access. <br />
        In my opinions, using independent buckets storage it can not only leverage parallel processing where it can
        reduce a lot of computation time, but also it can partitioning to other node if the workload is not fit in memory
        of a single node.
