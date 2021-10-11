@@ -18,13 +18,13 @@ public class PoolDataRepository {
         this.db = new ConcurrentHashMap<>();
     }
 
-    public Mono<String> insertOrAppend(PoolInsertRequest rq) {
+    public String insertOrAppend(PoolInsertRequest rq) {
         if (db.containsKey(rq.getPoolId())) {
             db.get(rq.getPoolId()).append(rq.getPoolValues());
-            return Mono.just(OperationCode.APPENDED.name());
+            return OperationCode.APPENDED.name();
         } else {
             db.put(rq.getPoolId(), new Pool(rq.getPoolValues()));
-            return Mono.just(OperationCode.INSERTED.name());
+            return OperationCode.INSERTED.name();
         }
     }
 

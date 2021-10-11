@@ -8,7 +8,7 @@ public class PoolQuantileRequest {
         this.poolId = poolId;
     }
 
-    public void setPoolValues(double percentile) {
+    public void setPercentile(double percentile) {
         this.percentile = percentile;
     }
 
