@@ -68,7 +68,7 @@ Our program is stateless, very easy to deploy to Kubernetes to utilize load bala
 quick deployment, health check, auto-scaling, auto start-over ...)  
 
 
-<b><i> By using using Redis and Kubernetes cluster, our serivce can achive all high availability, scalability & resiliency.  
+<b><i> By using using Redis and Kubernetes cluster, our serivce can achieve all high availability, scalability & resiliency.  
    This architecture can also turn the application into a cloud service without much effort </i></b>
 
 ### Consideration.
