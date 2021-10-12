@@ -18,7 +18,7 @@
 For the above analyzed of requirements, I decided to choose buckets as a main data structure of pool values storage. 
 
 - A pool values will be stored into a hashmap of buckets with key is bucket id and value is a bucket instance. 
-- Each bucket is constructed by <mark>Red-Black-Tree</mark> implementation which is a <mark><b>self-balancing binary search tree</b></mark>. The RBTree can not only preserve the sorted state, and more important it can also provide most common data structure operations with only `O(logN)` im time complexity and O(N) in space complexity. (See * [Big O Cheat Sheet](https://www.bigocheatsheet.com/) )
+- Each bucket is constructed by <mark>Red-Black-Tree</mark> implementation which is a <mark><b>self-balancing binary search tree</b></mark>. The <b>RBTree</b> can not only preserve the sorted state, and more important it can also provide most common data structure operations with only `O(logN)` in time complexity and `O(N)` in space complexity. (See [Big O Cheat Sheet](https://www.bigocheatsheet.com/) )
 - AVL Tree could be an option, but AVL trees store the balance factor at each node. This takes `O(N)` extra space. 
 For an insert intensive tasks, Red-Black tree is winner.
 - When a value is appended to a pool, it will be inserted to one bucket by its value. 
@@ -44,16 +44,16 @@ Quantile calculation is not cheap, it is better to cache the calculated values i
 Let assume N is total values of a pool, B is bucket capacity, U is number of unique values in a bucket (U <= B <= N),
 then the time complexity of each operation can be estimated as below:
 
-- Insert: `O(B log B)`
-- Append: `O(B log B)`
+- Insert: `O(N log B)`
+- Append: `O(N log B)`
 - Access: `O(U)`
 - Quantile calculation: `O(U)`
 
 
 ### High availability, scalability & resiliency.
 
-#### Database <br />
-- It requires semi-structured data, no relational at all => we can use NoSQL DB to achieve scalability, high
+#### Using Redis as main caching service and primary database <br />
+- It requires semi-structured data, no relationship at all => we can use NoSQL DB to achieve scalability, high
   availability and high performance over SQL Database. <br />
 - To reduce data access latency and I/O load => use in-memory cache like Redis or Memcached.
 - We can also use Redis as primary database because besides using as an in-memory caching service, it can be
@@ -65,9 +65,11 @@ then the time complexity of each operation can be estimated as below:
 #### Make use of Kubernetes cluster services <br />
 
 Our program is stateless, very easy to deploy to Kubernetes to utilize load balancer and many other services (
-quick deployment, health check, auto-scaling, auto start-over ...) => Resiliency improved !
+quick deployment, health check, auto-scaling, auto start-over ...)  
 
-<b><i> This architecture can turn the application into a cloud service without much effort </i></b>
+
+<b><i> By using using Redis and Kubernetes cluster, our serivce can achive all high availability, scalability & resiliency.  
+   This architecture can also turn the application into a cloud service without much effort </i></b>
 
 ### Consideration.
 
