@@ -17,16 +17,16 @@
 #### Pool data structures
 For the above analyzed of requirements, I decided to choose buckets as a main data structure of pool values storage. 
 
-- A pool values will be stored into a hashmap of buckets. Map key is bucket id. Map value is a single bucket. 
-Each bucket is constructed by <mark>Red-Black-Tree</mark> implementation which is a <mark>self-balancing binary search tree</mark>.
+- A pool values will be stored into a hashmap of buckets with key is bucket id and value is a bucket instance. 
+- Each bucket is constructed by <mark>Red-Black-Tree</mark> implementation which is a <mark><b>self-balancing binary search tree</b></mark>. The RBTree can not only preserve the sorted state, and more important it can also provide most common data structure operations with only `O(logN)` im time complexity and O(N) in space complexity. (See * [Big O Cheat Sheet](https://www.bigocheatsheet.com/) )
 - AVL Tree could be an option, but AVL trees store the balance factor at each node. This takes `O(N)` extra space. 
 For an insert intensive tasks, Red-Black tree is winner.
 - When a value is appended to a pool, it will be inserted to one bucket by its value. 
 The insertion time complexity is O(logN), but we have all buckets sorted.  
 - Each node of bucket is actually a map entry. Each entry is a pair of `<key,value>` 
-where `key` and `value` represent for an unique `poolValue` and number of its occurences it the pool respectively.  
-Thanks to this implementation, the number of iteration needs to traverse whole pool is always less than or equal the pool size.
-It equals to number of unique values in pool. (1)
+where `key` and `value` represent for an unique `poolValue` and number of its occurrences in the pool respectively.  
+Thanks to this implementation, the number of iteration needs to traverse a pool is always less than or equal the pool size.
+It equals to number of unique values in pool.
 
 In my opinions, using independent buckets to store data can not only leverage parallel processing where it can reduce computation time,
 but also it can partitioning to other node if the workload is not fit in memory of a single node.
