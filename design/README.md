@@ -41,7 +41,7 @@ it is `get2ConsecutiveElements(int index)` where it can return `i-th` and `i-th 
 Quantile calculation is not cheap, it is better to cache the calculated values in memory to improve the UX.
 
 #### Time complexity
-Let assume N is total values of a pool, B is bucket capacity, U is number of unique values in a bucket (U <= B <= N),
+Let assume N is total values (to insert/append to pool), B is bucket capacity, U is number of unique values in a bucket (U <= B <= N),
 then the time complexity of each operation can be estimated as below:
 
 - Insert: `O(N log B)`
