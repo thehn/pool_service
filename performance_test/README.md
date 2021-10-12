@@ -1,6 +1,6 @@
 # Performance test
 
-### A simple performance was performed as below:
+### A simple performance test was performed as below:
 
 1. Input workload. Array (pool) size: 1 millions Value range: 0~10 millions
 2. Test results (on average):
