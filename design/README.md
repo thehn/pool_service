@@ -3,7 +3,7 @@
 ### Requirements-based analysis
 
 1. Pools need to access and update by `poolId` as quickly as possible, and these operations also need to be concurrent. 
-   Therefore `ConcurrentHashMap` could be a proper data structure (access / search by key: `O(1)`).
+   Therefore `ConcurrentHashMap` could be a appropriate data structure (access / search by key: `O(1)`).
 2. To create data structure to store pool values, we need to take these criteria into account: <br>
     - Pool values keep updating frequently, especially the pool size is not limited. 
       So the program should be able to update pool value efficiently and pool capacity must be easily
