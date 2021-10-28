@@ -115,17 +115,4 @@ public class Bucket {
         }
     }
 
-//    public static void main(String[] args) throws Exception {
-//        int[] arr = new int[]{5, 6, 4, 6, 8, 9, 0, 5, 1, 5, 8, 0};
-//        Bucket bucket = new Bucket(arr);
-//        System.out.println(bucket.getSize());
-//        bucket.show();
-//        for (int i = 0; i < 12; ++i) {
-//            System.out.println(bucket.getAt(i));
-//        }
-//        for (int i = 0; i < 11; ++i) {
-//            System.out.println(Arrays.toString(bucket.get2ConsecutiveElements(i)));
-//        }
-//    }
-
 }

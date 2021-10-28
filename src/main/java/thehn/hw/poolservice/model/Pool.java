@@ -163,37 +163,4 @@ public class Pool {
             ++size;
         }
     }
-
-//    public static void main(String[] args) throws Exception {
-//        Pool pool = new Pool(10);
-//
-//        for (int i = 0; i < 10; ++i) {
-//            int[] arr = new int[10];
-//            for (int j = 0; j < 10; ++j) {
-//                arr[j] = ThreadLocalRandom.current().nextInt(0, 100);
-//            }
-//
-//            pool.add(arr);
-//        }
-//
-//        pool.show();
-//
-//        System.out.println("-----------------------");
-//        System.out.println("-----------------------");
-//        System.out.println("-----------------------");
-//
-//        for (int i = 0; i++ < 10; ) {
-//            int index = ThreadLocalRandom.current().nextInt(0, 100);
-//            System.out.println(index + "-->" + pool.get(index));
-//        }
-//
-//        System.out.println("-----------------------");
-//        System.out.println("-----------------------");
-//        System.out.println("-----------------------");
-//
-//        for (int i = 0; i <= 100; i += 10) {
-//            System.out.println(pool.calculateQuantile(i));
-//        }
-//    }
-
 }
