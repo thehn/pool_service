@@ -16,7 +16,6 @@ public class Pool {
     private AtomicInteger size = new AtomicInteger(0);
     private int bucketIdMax = 0;
     private final Map<Integer, Bucket> buckets = new ConcurrentHashMap<>();
-    private final Map<Double, Double> cachedQuantiles = new ConcurrentHashMap<>();
 
     public Pool(int[] arr) {
         add(arr);
@@ -121,14 +120,11 @@ public class Pool {
         if (percentile < 0d || percentile > 100d)
             throw new IllegalArgumentException("Percentile must be in range [0,100]");
 
-        if (cachedQuantiles.containsKey(percentile))
-            return cachedQuantiles.get(percentile);
-
         double q = percentile / 100d;
         double position = (getSize() - 1) * q;
         int index = (int) Math.floor(position);
         double fraction = position - index;
-        double result = 0d;
+        double result;
 
         if (index < getSize() - 1) {
             int[] tmp = get2ConsecutiveElements(index);
@@ -137,7 +133,6 @@ public class Pool {
             result = get(index);
         }
 
-        cachedQuantiles.put(percentile, result);
         return result;
     }
 
@@ -149,8 +144,6 @@ public class Pool {
     }
 
     private void add(int[] arr) {
-        if (arr.length > 0)
-            cachedQuantiles.clear(); // clear cache on update
 
         for (int val : arr) {
             int id = val / bucketCapacity;
