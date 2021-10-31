@@ -31,8 +31,8 @@ public class PoolController {
     }
 
     @PostMapping(value = "/v1/pool/quantile", produces = "application/json; charset=utf-8")
-    public String quantile(@RequestBody PoolQuantileRequest rq) throws EndOfBucketException, EndOfPoolException {
-        double q = 0;
+    public String quantile(@RequestBody PoolQuantileRequest rq) {
+        double q;
         try {
             q = repository.queryQuantile(rq.getPoolId(), rq.getPercentile());
             int size = repository.queryPoolSize(rq.getPoolId());
@@ -40,6 +40,8 @@ public class PoolController {
             return GSON.toJson(res);
         } catch (PoolIdNotFoundException e) {
             return "poolId not found. Please check the input again";
+        } catch (EndOfBucketException | EndOfPoolException e) {
+            return "Internal error: " + e.getLocalizedMessage();
         }
     }
 }

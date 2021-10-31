@@ -13,8 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Pool {
     private int bucketCapacity = 1_000; // default value just for test
-    private AtomicInteger size = new AtomicInteger(0);
-    private int bucketIdMax = 0;
+    private final AtomicInteger size = new AtomicInteger(0);
     private final Map<Integer, Bucket> buckets = new ConcurrentHashMap<>();
 
     public Pool(int[] arr) {
@@ -41,7 +40,7 @@ public class Pool {
         return size.get();
     }
 
-    public int get(int index) throws EndOfBucketException {
+    public int get(int index) throws EndOfBucketException, EndOfPoolException {
         if (index < 0 || index >= getSize())
             throw new IndexOutOfBoundsException();
 
@@ -51,16 +50,15 @@ public class Pool {
         for (Map.Entry<Integer, Bucket> entry : buckets.entrySet()) {
             int lastCount = count;
             count += entry.getValue().getSize();
+            tmpBucket = entry.getValue();
             if (count > index) {
-                tmpBucket = entry.getValue();
                 k = index - lastCount;
                 break;
             }
         }
 
-        if (tmpBucket == null) {
-            tmpBucket = buckets.get(bucketIdMax);
-        }
+        if (tmpBucket == null)
+            throw new EndOfPoolException();
 
         return tmpBucket.getAt(k);
     }
@@ -156,7 +154,6 @@ public class Pool {
                 return v;
             });
             size.incrementAndGet();
-            if (id > bucketIdMax) bucketIdMax = id;
         }
     }
 }
