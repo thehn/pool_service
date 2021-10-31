@@ -6,14 +6,14 @@ import thehn.hw.poolservice.exception.EndOfPoolException;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Stores all values of a pool
  */
 public class Pool {
     private int bucketCapacity = 1_000; // default value just for test
-    private int size = 0;
+    private AtomicInteger size = new AtomicInteger(0);
     private int bucketIdMax = 0;
     private final Map<Integer, Bucket> buckets = new ConcurrentHashMap<>();
     private final Map<Double, Double> cachedQuantiles = new ConcurrentHashMap<>();
@@ -39,11 +39,11 @@ public class Pool {
     }
 
     public int getSize() {
-        return size;
+        return size.get();
     }
 
     public int get(int index) throws EndOfBucketException {
-        if (index < 0 || index >= size)
+        if (index < 0 || index >= getSize())
             throw new IndexOutOfBoundsException();
 
         int count = 0;
@@ -73,7 +73,7 @@ public class Pool {
      * @return the array contains 2 consecutive elements at position index and index + 1
      */
     public int[] get2ConsecutiveElements(int index) throws EndOfPoolException, EndOfBucketException {
-        if (index < 0 || index >= size - 1)
+        if (index < 0 || index >= getSize() - 1)
             throw new IndexOutOfBoundsException();
 
         int count = 0;
@@ -125,12 +125,12 @@ public class Pool {
             return cachedQuantiles.get(percentile);
 
         double q = percentile / 100d;
-        double position = (size - 1) * q;
+        double position = (getSize() - 1) * q;
         int index = (int) Math.floor(position);
         double fraction = position - index;
         double result = 0d;
 
-        if (index < size - 1) {
+        if (index < getSize() - 1) {
             int[] tmp = get2ConsecutiveElements(index);
             result = tmp[0] + fraction * (tmp[1] - tmp[0]);
         } else {
@@ -154,13 +154,16 @@ public class Pool {
 
         for (int val : arr) {
             int id = val / bucketCapacity;
-            if (buckets.containsKey(id)) {
-                buckets.get(id).append(val);
-            } else {
-                buckets.put(id, new Bucket(val));
-            }
+            buckets.compute(id, (k, v) -> {
+                if (v == null) {
+                    return new Bucket(val);
+                } else {
+                    v.append(val);
+                }
+                return v;
+            });
+            size.incrementAndGet();
             if (id > bucketIdMax) bucketIdMax = id;
-            ++size;
         }
     }
 }

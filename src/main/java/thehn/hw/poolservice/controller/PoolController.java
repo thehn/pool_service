@@ -13,8 +13,6 @@ import thehn.hw.poolservice.model.PoolInsertRequest;
 import thehn.hw.poolservice.model.PoolQuantileRequest;
 import thehn.hw.poolservice.model.QuantileResponse;
 
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 public class PoolController {
