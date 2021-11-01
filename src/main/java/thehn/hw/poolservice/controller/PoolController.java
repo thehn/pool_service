@@ -32,14 +32,15 @@ public class PoolController {
 
     @PostMapping(value = "/v1/pool/quantile", produces = "application/json; charset=utf-8")
     public String quantile(@RequestBody PoolQuantileRequest rq) {
-        double q;
+        if (rq.getPercentile() < 0d || rq.getPercentile() > 100d)
+            return "percentile out of bound: [0:100]";
         try {
             QuantileResult res = repository.queryQuantile(rq.getPoolId(), rq.getPercentile());
             return GSON.toJson(res);
         } catch (PoolIdNotFoundException e) {
             return "poolId not found. Please check the input again";
         } catch (EndOfBucketException | EndOfPoolException e) {
-            return "Internal error: " + e.getLocalizedMessage();
+            return "Error: " + e.getMessage();
         }
     }
 }
