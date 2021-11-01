@@ -17,7 +17,7 @@ public class Bucket {
     private final Int2IntRBTreeMap values = new Int2IntRBTreeMap();
     private AtomicInteger size = new AtomicInteger(0);
 
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock(true);
 
     public Bucket(int val) {
         addValue(val);

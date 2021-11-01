@@ -19,7 +19,7 @@ public class Pool {
     private final AtomicInteger size = new AtomicInteger(0);
     private final Map<Integer, Bucket> buckets = new ConcurrentHashMap<>();
 
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock(true);
 
     public Pool(int[] arr) {
         add(arr);
