@@ -28,7 +28,7 @@ public class PoolDataRepository {
         }
     }
 
-    public double queryQuantile(int poolId, double percentile) throws EndOfBucketException, EndOfPoolException, PoolIdNotFoundException {
+    public QuantileResult queryQuantile(int poolId, double percentile) throws EndOfBucketException, EndOfPoolException, PoolIdNotFoundException {
         if (db.containsKey(poolId)) {
             return db.get(poolId).calculateQuantile(percentile);
         } else {

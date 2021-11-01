@@ -1,13 +1,13 @@
 package thehn.hw.poolservice.model;
 
-public class QuantileResponse {
+public class QuantileResult {
     private double quantile;
     private int poolSize;
 
-    public QuantileResponse() {
+    public QuantileResult() {
     }
 
-    public QuantileResponse(double q, int size) {
+    public QuantileResult(double q, int size) {
         this.quantile = q;
         this.poolSize = size;
     }

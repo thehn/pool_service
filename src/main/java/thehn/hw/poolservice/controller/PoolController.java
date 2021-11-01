@@ -11,7 +11,7 @@ import thehn.hw.poolservice.exception.PoolIdNotFoundException;
 import thehn.hw.poolservice.model.PoolDataRepository;
 import thehn.hw.poolservice.model.PoolInsertRequest;
 import thehn.hw.poolservice.model.PoolQuantileRequest;
-import thehn.hw.poolservice.model.QuantileResponse;
+import thehn.hw.poolservice.model.QuantileResult;
 
 
 @RestController
@@ -34,9 +34,7 @@ public class PoolController {
     public String quantile(@RequestBody PoolQuantileRequest rq) {
         double q;
         try {
-            q = repository.queryQuantile(rq.getPoolId(), rq.getPercentile());
-            int size = repository.queryPoolSize(rq.getPoolId());
-            QuantileResponse res = new QuantileResponse(q, size);
+            QuantileResult res = repository.queryQuantile(rq.getPoolId(), rq.getPercentile());
             return GSON.toJson(res);
         } catch (PoolIdNotFoundException e) {
             return "poolId not found. Please check the input again";

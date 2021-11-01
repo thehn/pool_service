@@ -5,13 +5,19 @@ import thehn.hw.poolservice.exception.EndOfBucketException;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Stores a bucket of sorted values
  */
 public class Bucket {
     private final Int2IntRBTreeMap values = new Int2IntRBTreeMap();
-    private int size;
+    private AtomicInteger size = new AtomicInteger(0);
+
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public Bucket(int val) {
         addValue(val);
@@ -30,12 +36,7 @@ public class Bucket {
     }
 
     public int getSize() {
-        return this.size;
-    }
-
-    public void show() {
-        System.out.println(values);
-        System.out.println("Size: " + size);
+        return this.size.get();
     }
 
     /**
@@ -45,64 +46,87 @@ public class Bucket {
      * @return the array contains 2 consecutive elements at position index and index + 1
      */
     public int[] get2ConsecutiveElements(int index) {
-        if (index < 0 || index >= size - 1)
+        if (index < 0 || index >= getSize() - 1)
             throw new IndexOutOfBoundsException();
 
         int[] results = new int[2];
         int iter = 0;
         boolean check = false;
-        for (Map.Entry<Integer, Integer> entry : values.int2IntEntrySet()) {
-            if (check) {
-                results[1] = entry.getKey();
-                return results;
-            }
-            iter += entry.getValue();
-            if (iter > index) {
-                results[0] = entry.getKey();
-                if (iter - index > 1) {
+        Lock rl = lock.readLock();
+
+        try {
+            rl.lock();
+            for (Map.Entry<Integer, Integer> entry : values.int2IntEntrySet()) {
+                if (check) {
                     results[1] = entry.getKey();
                     return results;
                 }
-                check = true;
+                iter += entry.getValue();
+                if (iter > index) {
+                    results[0] = entry.getKey();
+                    if (iter - index > 1) {
+                        results[1] = entry.getKey();
+                        return results;
+                    }
+                    check = true;
+                }
             }
+            return results;
+        } finally {
+            rl.unlock();
         }
-
-        return results;
     }
 
     public int getAt(int index) throws EndOfBucketException {
-        if (index < 0 || index >= size)
-            throw new IndexOutOfBoundsException();
+        Lock rl = lock.readLock();
+        try {
+            rl.lock();
 
-        if (index == 0)
-            return values.firstIntKey();
-        if (index == size - 1)
-            return values.lastIntKey();
+            if (index < 0 || index >= getSize())
+                throw new IndexOutOfBoundsException();
 
-        int iter = 0;
-        for (Map.Entry<Integer, Integer> entry : values.int2IntEntrySet()) {
-            iter += entry.getValue();
-            if (iter > index) return entry.getKey();
+            if (index == 0)
+                return values.firstIntKey();
+            if (index == getSize() - 1)
+                return values.lastIntKey();
+
+            int iter = 0;
+            for (Map.Entry<Integer, Integer> entry : values.int2IntEntrySet()) {
+                iter += entry.getValue();
+                if (iter > index) return entry.getKey();
+            }
+            throw new EndOfBucketException("Iterated over bucket but not found value");
+        } finally {
+            rl.unlock();
         }
-
-        throw new EndOfBucketException("Iterated over bucket but not found value");
     }
 
+    /**
+     * Adds a single value to bucket
+     */
     private void addValue(int val) {
-        synchronized (values) {
+        Lock wl = lock.writeLock();
+        try {
+            wl.lock();
             if (values.containsKey(val)) {
                 int count = values.get(val) + 1;
                 values.put(val, count);
             } else {
                 values.put(val, 1);
             }
-            ++size;
+            size.incrementAndGet();
+        } finally {
+            wl.unlock();
         }
-
     }
 
+    /**
+     * Adds array of values to bucket
+     */
     private void addValues(int[] arr) {
-        synchronized (values) {
+        Lock wl = lock.writeLock();
+        try {
+            wl.lock();
             for (int val : arr) {
                 if (values.containsKey(val)) {
                     int count = values.get(val) + 1;
@@ -110,8 +134,10 @@ public class Bucket {
                 } else {
                     values.put(val, 1);
                 }
-                ++size;
+                size.incrementAndGet();
             }
+        } finally {
+            wl.unlock();
         }
     }
 

@@ -63,18 +63,10 @@ class ApplicationTests {
 
     @Test
     @Order(5)
-    void testQuantileCalculation() {
-        PoolQuantileRequest request = new PoolQuantileRequest();
-        request.setPoolId(123456);
-        request.setPercentile(20);
-        try {
-            String response = controller.quantile(request);
-            QuantileResponse res = new Gson().fromJson(response, QuantileResponse.class);
-            Assertions.assertThat(res.getPoolSize()).isEqualTo(10);
-            Assertions.assertThat(res.getQuantile()).isEqualTo(1.8d);
-        } catch (EndOfBucketException | EndOfPoolException e) {
-            e.printStackTrace();
-        }
+    void testQuantileCalculation() throws PoolIdNotFoundException, EndOfBucketException, EndOfPoolException {
+        QuantileResult res = repository.queryQuantile(123456, 20);
+        Assertions.assertThat(res.getPoolSize()).isEqualTo(10);
+        Assertions.assertThat(res.getQuantile()).isEqualTo(1.8d);
     }
 
 }

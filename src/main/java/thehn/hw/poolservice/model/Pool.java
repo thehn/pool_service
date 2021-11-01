@@ -7,6 +7,9 @@ import thehn.hw.poolservice.exception.EndOfPoolException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Stores all values of a pool
@@ -15,6 +18,8 @@ public class Pool {
     private int bucketCapacity = 1_000; // default value just for test
     private final AtomicInteger size = new AtomicInteger(0);
     private final Map<Integer, Bucket> buckets = new ConcurrentHashMap<>();
+
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     public Pool(int[] arr) {
         add(arr);
@@ -40,6 +45,9 @@ public class Pool {
         return size.get();
     }
 
+    /**
+     * Gets pool element at index
+     */
     public int get(int index) throws EndOfBucketException, EndOfPoolException {
         if (index < 0 || index >= getSize())
             throw new IndexOutOfBoundsException();
@@ -47,20 +55,27 @@ public class Pool {
         int count = 0;
         int k = 0;
         Bucket tmpBucket = null;
-        for (Map.Entry<Integer, Bucket> entry : buckets.entrySet()) {
-            int lastCount = count;
-            count += entry.getValue().getSize();
-            tmpBucket = entry.getValue();
-            if (count > index) {
-                k = index - lastCount;
-                break;
+        Lock rl = lock.readLock();
+
+        try {
+            rl.lock();
+            for (Map.Entry<Integer, Bucket> entry : buckets.entrySet()) {
+                int lastCount = count;
+                count += entry.getValue().getSize();
+                tmpBucket = entry.getValue();
+                if (count > index) {
+                    k = index - lastCount;
+                    break;
+                }
             }
+
+            if (tmpBucket == null)
+                throw new EndOfPoolException();
+
+            return tmpBucket.getAt(k);
+        } finally {
+            rl.unlock();
         }
-
-        if (tmpBucket == null)
-            throw new EndOfPoolException();
-
-        return tmpBucket.getAt(k);
     }
 
     /**
@@ -78,33 +93,39 @@ public class Pool {
         Bucket firstBucket = null;
         int nextBucketId = 0;
         boolean locatedOnSameBucket = false;
+        Lock rl = lock.readLock();
 
-        for (Map.Entry<Integer, Bucket> entry : buckets.entrySet()) {
-            int lastCount = count;
-            count += entry.getValue().getSize();
-            if (count > index) {
-                firstBucket = entry.getValue();
-                k = index - lastCount;
-                if (count - index > 1) {
-                    locatedOnSameBucket = true;
+        try {
+            rl.lock();
+            for (Map.Entry<Integer, Bucket> entry : buckets.entrySet()) {
+                int lastCount = count;
+                count += entry.getValue().getSize();
+                if (count > index) {
+                    firstBucket = entry.getValue();
+                    k = index - lastCount;
+                    if (count - index > 1) {
+                        locatedOnSameBucket = true;
+                    }
+                    nextBucketId = entry.getKey() + 1;
+                    break;
                 }
-                nextBucketId = entry.getKey() + 1;
-                break;
             }
-        }
 
-        if (firstBucket == null) {
-            throw new EndOfPoolException("Iterated over pool but not found bucket");
-        }
+            if (firstBucket == null) {
+                throw new EndOfPoolException("Iterated over pool but not found bucket");
+            }
 
-        if (locatedOnSameBucket) {
-            return firstBucket.get2ConsecutiveElements(k);
-        } else {
-            int[] results = new int[2];
-            Bucket nextBucket = buckets.get(nextBucketId);
-            results[0] = firstBucket.getAt(k);
-            results[1] = nextBucket.getAt(0);
-            return results;
+            if (locatedOnSameBucket) {
+                return firstBucket.get2ConsecutiveElements(k);
+            } else {
+                int[] results = new int[2];
+                Bucket nextBucket = buckets.get(nextBucketId);
+                results[0] = firstBucket.getAt(k);
+                results[1] = nextBucket.getAt(0);
+                return results;
+            }
+        } finally {
+            rl.unlock();
         }
     }
 
@@ -114,46 +135,54 @@ public class Pool {
      * @param percentile percentile
      * @return quantile
      */
-    public double calculateQuantile(double percentile) throws EndOfBucketException, EndOfPoolException {
+    public QuantileResult calculateQuantile(double percentile) throws EndOfBucketException, EndOfPoolException {
         if (percentile < 0d || percentile > 100d)
             throw new IllegalArgumentException("Percentile must be in range [0,100]");
 
-        double q = percentile / 100d;
-        double position = (getSize() - 1) * q;
-        int index = (int) Math.floor(position);
-        double fraction = position - index;
-        double result;
+        Lock rl = lock.readLock();
+        try {
+            rl.lock();
+            double q = percentile / 100d;
+            double position = (getSize() - 1) * q;
+            int index = (int) Math.floor(position);
+            double fraction = position - index;
+            QuantileResult result = new QuantileResult();
+            result.setPoolSize(getSize());
 
-        if (index < getSize() - 1) {
-            int[] tmp = get2ConsecutiveElements(index);
-            result = tmp[0] + fraction * (tmp[1] - tmp[0]);
-        } else {
-            result = get(index);
+            if (index < getSize() - 1) {
+                int[] tmp = get2ConsecutiveElements(index);
+                double tmpQ = tmp[0] + fraction * (tmp[1] - tmp[0]);
+                result.setQuantile(tmpQ);
+            } else {
+                double tmpQ = get(index);
+                result.setQuantile(tmpQ);
+            }
+
+            return result;
+        } finally {
+            rl.unlock();
         }
 
-        return result;
-    }
-
-    void show() {
-        buckets.forEach((key, value) -> {
-            System.out.println(key);
-            value.show();
-        });
     }
 
     private void add(int[] arr) {
-
-        for (int val : arr) {
-            int id = val / bucketCapacity;
-            buckets.compute(id, (k, v) -> {
-                if (v == null) {
-                    return new Bucket(val);
-                } else {
-                    v.append(val);
-                }
-                return v;
-            });
-            size.incrementAndGet();
+        Lock wl = lock.writeLock();
+        try {
+            wl.lock();
+            for (int val : arr) {
+                int id = val / bucketCapacity;
+                buckets.compute(id, (k, v) -> {
+                    if (v == null) {
+                        return new Bucket(val);
+                    } else {
+                        v.append(val);
+                    }
+                    return v;
+                });
+                size.incrementAndGet();
+            }
+        } finally {
+            wl.unlock();
         }
     }
 }
